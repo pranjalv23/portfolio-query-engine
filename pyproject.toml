@@ -1,0 +1,26 @@
+[project]
+name = "portfolio-query-engine"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "None"}
+]
+requires-python = "^3.13"
+dependencies = [
+    "google-genai[aiohttp] (>=1.62.0)",
+    "fastapi (>=0.135.1)",
+    "uvicorn[standard] (>=0.41.0)",
+    "pydantic (>=2.12.5)",
+    "pydantic-settings (>=2.7.0)",
+    "psycopg[binary] (>=3.2.0)",
+    "psycopg-pool (>=3.2.0)",
+    "streamlit (>=1.55.0)",
+    "pandas (>=2.2.0,<3.0.0)",
+    "httpx (>=0.28.0)",
+    "python-dotenv (>=1.1.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
