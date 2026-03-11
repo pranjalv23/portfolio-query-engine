@@ -7,6 +7,8 @@ import os
 from core.config import settings
 from core.logging_helpers import get_logger
 from db.sessions import fetch_rows
+from decimal import Decimal
+from datetime import date, datetime
 from llm.llm_services import generate_sql
 
 logger = get_logger(__name__)
@@ -37,6 +39,24 @@ _PREWARM_QUERIES = [
     "Total invested vs current value",
     "Asset type breakdown",
 ]
+
+
+class DecimalEncoder(json.JSONEncoder):
+    """Custom encoder to handle Decimal types from the database."""
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super(DecimalEncoder, self).default(obj)
+
+
+class CustomJSONEncoder(json.JSONEncoder):
+    """Custom encoder to handle Decimal, date, and datetime types."""
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        if isinstance(obj, (date, datetime)):
+            return obj.isoformat()
+        return super().default(obj)
 
 
 def _cache_key(query: str) -> str:
@@ -106,7 +126,6 @@ def _save_session_log(session_id: str, result: dict):
     os.makedirs(log_dir, exist_ok=True)
     file_path = os.path.join(log_dir, f"session_{session_id}.json")
     
-    # Load existing logs or start new list
     logs = []
     if os.path.exists(file_path):
         with open(file_path, "r") as f:
@@ -118,7 +137,8 @@ def _save_session_log(session_id: str, result: dict):
     logs.append(result)
     
     with open(file_path, "w") as f:
-        json.dump(logs, f, indent=2)
+        # Pass the CustomJSONEncoder here
+        json.dump(logs, f, indent=2, cls=CustomJSONEncoder)
 
 
 async def process_nl_query(nl_query: str, session_id: str = "default") -> dict:

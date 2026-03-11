@@ -20,7 +20,7 @@ def fetch_stats() -> dict:
         return {}
 
 
-def call_backend(query: str) -> dict:
-    r = _http.post("/query", json={"query": query})
+def call_backend(query: str, session_id: str) -> dict:
+    r = _http.post("/query", json={"query": query, "session_id": session_id})
     r.raise_for_status()
     return r.json()
