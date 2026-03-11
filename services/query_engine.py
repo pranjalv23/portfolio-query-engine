@@ -1,6 +1,8 @@
 import math
 import hashlib
+import json
 import re
+import os
 
 from core.config import settings
 from core.logging_helpers import get_logger
@@ -98,7 +100,28 @@ def _build_summary(intent: str, columns: list[str], rows: list[dict]) -> str:
     return f"**{n} record{'s' if n != 1 else ''}** returned for \"{intent}\"."
 
 
-async def process_nl_query(nl_query: str) -> dict:
+def _save_session_log(session_id: str, result: dict):
+    """Saves the query and response to a session-specific JSON file."""
+    log_dir = "session_logs"
+    os.makedirs(log_dir, exist_ok=True)
+    file_path = os.path.join(log_dir, f"session_{session_id}.json")
+    
+    # Load existing logs or start new list
+    logs = []
+    if os.path.exists(file_path):
+        with open(file_path, "r") as f:
+            try:
+                logs = json.load(f)
+            except json.JSONDecodeError:
+                logs = []
+    
+    logs.append(result)
+    
+    with open(file_path, "w") as f:
+        json.dump(logs, f, indent=2)
+
+
+async def process_nl_query(nl_query: str, session_id: str = "default") -> dict:
     cached = _cache_get(nl_query)
     if cached is not None:
         return {**cached, "cache_hit": True}
@@ -114,6 +137,7 @@ async def process_nl_query(nl_query: str) -> dict:
                 row[k] = None
 
     result = {
+        "query": nl_query, # Include the original query in the log
         "intent": intent,
         "sql": sql,
         "summary": _build_summary(intent, columns, rows),
@@ -124,6 +148,7 @@ async def process_nl_query(nl_query: str) -> dict:
     }
 
     _cache_set(nl_query, result)
+    _save_session_log(session_id, result)
     return result
 
 

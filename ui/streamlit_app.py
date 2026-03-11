@@ -1,5 +1,6 @@
 import httpx
 import streamlit as st
+import uuid
 
 import sys
 from pathlib import Path
@@ -51,6 +52,7 @@ _WELCOME = (
 def _init_session() -> None:
     st.session_state.setdefault("pill_counter", 0)
     st.session_state.setdefault("pending_query", None)
+    st.session_state.setdefault("session_id", str(uuid.uuid4())[:8])
     if "messages" not in st.session_state:
         st.session_state.messages = [
             {"role": "assistant", "content": _WELCOME,
@@ -64,7 +66,7 @@ def _handle_query(query: str) -> None:
 
     with st.status("Querying database…", expanded=False) as status:
         try:
-            result = call_backend(query)
+            result = call_backend(query, st.session_state.session_id)
             status.update(label="Done", state="complete", expanded=False)
             st.session_state.messages.append({
                 "role":       "assistant",

@@ -3,7 +3,7 @@ from pydantic import BaseModel, field_validator
 
 class QueryRequest(BaseModel):
     query: str
-
+    session_id: str
     @field_validator("query")
     @classmethod
     def must_not_be_empty(cls, v: str) -> str:

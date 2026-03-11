@@ -70,7 +70,7 @@ async def portfolio_stats():
 async def query_portfolio(req: QueryRequest):
     t0 = time.perf_counter()
     try:
-        result = await process_nl_query(req.query)
+        result = await process_nl_query(req.query, req.session_id)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
     result["latency_ms"] = round((time.perf_counter() - t0) * 1000, 1)
